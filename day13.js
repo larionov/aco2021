@@ -40,7 +40,6 @@ function foldUp(foldY) {
       const newPoint = get(pointsMap, j, 2 * foldY - i);
       del(pointsMap, j, 2 * foldY - i);
       mark(pointsMap, j, i, newPoint);
-      //      console.log({ j, i }, { j, i: 2 * foldY - i });
     }
   }
   maxY = foldY;
@@ -52,7 +51,6 @@ function foldLeft(foldX) {
       const newPoint = get(pointsMap, 2 * foldX - j, i);
       del(pointsMap, 2 * foldX - j, i);
       mark(pointsMap, j, i, newPoint);
-      //      console.log({ j, i }, { j: 2 * foldX - j, i });
     }
   }
   maxX = foldX;
@@ -60,10 +58,8 @@ function foldLeft(foldX) {
 
 console.log('before', Object.keys(pointsMap).length);
 for (let [dir, val] of instr) {
-  //console.log({ dir, val });
   if (dir === 'x') foldLeft(val);
   if (dir === 'y') foldUp(val);
-  //  break;
 }
 
 console.log('after', Object.keys(pointsMap).length);
@@ -75,7 +71,7 @@ for (let i of range(0, maxY + 1)) {
     if (get(pointsMap, j, i)) {
       str += 'X';
     } else {
-      str += '.';
+      str += ' ';
     }
   }
   console.log(str);
