@@ -1,6 +1,17 @@
 import { readLines } from 'https://deno.land/std@0.116.0/io/bufio.ts';
 import { range } from 'https://deno.land/x/it_range@v1.0.3/range.mjs';
 import { slidingWindows } from 'https://deno.land/std@0.116.0/collections/mod.ts';
+import count from 'https://deno.land/x/denodash@0.1.3/src/collection/count.ts';
+
+const objAdd = (o, p, v) => {
+  if (o[p] === undefined) o[p] = 0;
+  o[p] += v;
+};
+const objSub = (o, p, v) => {
+  o[p] -= v;
+  if (o[p] == 0) delete o[p];
+};
+
 const all = [];
 for await (let line of readLines(Deno.stdin)) {
   all.push(line);
@@ -19,17 +30,9 @@ const rules = rulesText.reduce((acc, v) => {
   ].map((s) => s.join(''));
   return acc;
 }, {});
-const map = slidingWindows(template.split(''), 2).reduce((acc, p) => {
-  const pair = p.join('');
-  if (!acc[pair]) acc[pair] = 0;
-  acc[pair]++;
-  return acc;
-}, {});
-const chars = template.split('').reduce((acc, c) => {
-  if (!acc[c]) acc[c] = 0;
-  acc[c]++;
-  return acc;
-}, {});
+
+const map = count(slidingWindows(template.split(''), 2).map((v) => v.join('')));
+const chars = count(template.split(''));
 
 const process = (m, c, rules) => {
   const map = Object.assign({}, m);
@@ -39,22 +42,17 @@ const process = (m, c, rules) => {
     const replacement = rules[p];
     if (m[p]) {
       for (let r of replacement) {
-        if (!add[r]) add[r] = 0;
-        add[r] += m[p];
+        objAdd(add, r, m[p]);
       }
-      if (!remove[p]) remove[p] = 0;
-      remove[p] += m[p];
-      if (!c[replacement[0][1]]) c[replacement[0][1]] = 0;
-      c[replacement[0][1]] += m[p];
+      objAdd(remove, p, m[p]);
+      objAdd(c, replacement[0][1], m[p]);
     }
   }
   for (let [a, v] of Object.entries(add)) {
-    if (!map[a]) map[a] = 0;
-    map[a] += v;
+    objAdd(map, a, v);
   }
   for (let [a, v] of Object.entries(remove)) {
-    if (map[a]) map[a] -= v;
-    if (!map[a]) delete map[a];
+    objSub(map, a, v);
   }
   return map;
 };
