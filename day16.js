@@ -63,7 +63,7 @@ function parse(bin) {
   const T = bin.substring(i + 3, i + 3 + 3);
   if (V === '' || T === '') {
     console.log('BREAK');
-    return;
+    return [null, null];
   }
   i += 6;
   console.log({ V, T, version: parseInt(V, 2) });
@@ -89,6 +89,7 @@ function parse(bin) {
     const values = [];
     if (I === '0') {
       L = parseInt(bin.substring(i, i + 15), 2);
+      console.log('OP LENGTH', { L });
       i += 15;
       let subI = 0;
       while (subI < L - 2) {
@@ -99,7 +100,7 @@ function parse(bin) {
       i += L;
     } else {
       L = parseInt(bin.substring(i, i + 11), 2);
-      console.log('OP 3', { L });
+      console.log('OP COUNT', { L });
       i += 11;
       for (let p = 0; p < L; p++) {
         const [len, val] = parse(bin.substring(i));
@@ -110,27 +111,28 @@ function parse(bin) {
     }
     const type = parseInt(T, 2);
     console.log({ type, values });
-    if (type === 0) {
-      // SUM
-      value = values.reduce((acc, v) => acc + v, 0);
-    } else if (type === 1) {
-      // prod
-      value = values.reduce((acc, v) => acc * v, 1);
-    } else if (type === 2) {
-      // min
-      value = Math.min(...values);
-    } else if (type === 3) {
-      // max
-      value = Math.max(...values);
-    } else if (type === 5) {
-      // gt
-      value = values[0] > values[1] ? 1 : 0;
-    } else if (type === 6) {
-      // lt
-      value = values[0] < values[1] ? 1 : 0;
-    } else if (type === 7) {
-      // eq
-      value = values[0] === values[1] ? 1 : 0;
+    switch (type) {
+      case 0:
+        value = values.reduce((acc, v) => acc + v, 0);
+        break;
+      case 1:
+        value = values.reduce((acc, v) => acc * v, 1);
+        break;
+      case 2:
+        value = Math.min(...values);
+        break;
+      case 3:
+        value = Math.max(...values);
+        break;
+      case 5:
+        value = values[0] > values[1] ? 1 : 0;
+        break;
+      case 6:
+        value = values[0] < values[1] ? 1 : 0;
+        break;
+      case 7:
+        value = values[0] === values[1] ? 1 : 0;
+        break;
     }
   }
   console.log('<-PARSE', { T, V, value });
