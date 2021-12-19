@@ -60,55 +60,13 @@ const scanners = all
       .slice(1)
       .map((c) => c.split(',').map((x) => parseInt(x, 10))),
   );
-//console.log({ scanners });
 
 const allRotations = [...permutationsWithReplacement([0, 1, 2, 3], 3)].map(
   (r) => r.map((d) => (d * Math.PI) / 2),
 );
-// const allRotations = [
-//   [0, 0, 0],
-//   [1, 0, 0],
-//   [2, 0, 0],
-//   [3, 0, 0],
-//   [0, 1, 0],
-//   [1, 1, 0],
-//   [2, 1, 0],
-//   [3, 1, 0],
-//   [0, 2, 0],
-//   [1, 2, 0],
-//   [2, 2, 0],
-//   [3, 2, 0],
-//   [0, 3, 0],
-//   [1, 3, 0],
-//   [2, 3, 0],
-//   [3, 3, 0],
-//   [0, 0, 1],
-//   [1, 0, 1],
-//   [2, 0, 1],
-//   [3, 0, 1],
-//   [0, 0, 3],
-//   [1, 0, 3],
-//   [2, 0, 3],
-//   [3, 0, 3],
-// ].map((r) => r.map((d) => (d * Math.PI) / 2));
-//       .map((r) =>
-//   r.map((d) => (d * Math.PI) / 2),
-// );
 
 console.log({ allRotations }, allRotations.length);
 
-function translateP(p, d) {
-  return p.map((v, i) => v + d[i]);
-}
-function translatePoints(points, d) {
-  return points.map((v) => translateP(v, d));
-}
-
-function sort(a1) {
-  let a = [...a1];
-  a.sort((x, y) => x[0] - y[0]);
-  return a;
-}
 function diffArray(a1, a2) {
   return a1.map((p, i) => p - a2[i]);
 }
