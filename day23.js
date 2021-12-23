@@ -77,6 +77,18 @@ function getCost(player) {
   return 0;
 }
 function getPlayers(map) {
+  const loc = [];
+  for (let i in map) {
+    for (let j in map[i]) {
+      if (map[i][j].match(/[ABCDEFGH]/)) {
+        loc.push([map[i][j], [i10(i), i10(j)]]);
+      }
+    }
+  }
+  return loc;
+}
+
+function getPlayersMap(map) {
   const loc = {};
   for (let i in map) {
     for (let j in map[i]) {
@@ -138,9 +150,8 @@ function possibleMoves(map, player) {
     //console.log({ movesAvailable });
   };
   const players = getPlayers(map);
-  const pos = players[player];
+  const [_, pos] = players.find(([p]) => p === player);
   helper(pos);
-  //console.log({ visited });
   let moves = resultPaths
     .filter((p) => p.length)
     .map((p) => [p[p.length - 1], p.length])
@@ -161,14 +172,14 @@ function possibleMoves(map, player) {
   return moves;
 }
 function checkWin(map) {
-  const p = getPlayers(map);
+  const p = getPlayersMap(map);
   // console.log({ map, p });
   // console.log(Object.values(p).filter((pos) => pos[0] === 1 || pos[0] === 2));
   // if (
   //   Object.values(p).filter((pos) => pos[0] === 1 || pos[0] === 2).length !== 8
   // )
   //   return [];
-
+  //  console.log({ p });
   const locked = [];
   for (let c of 'ABCDEFGH') {
     if (p[c][1] === playerCols[c] && p[c][0] === 2) {
@@ -199,7 +210,8 @@ function playMove(map, [player, place]) {
   //  console.log({ map });
   const newMap = copy(map);
   const players = getPlayers(map);
-  const initPos = players[player];
+  const [_, initPos] = players.find((p) => p[0] === player);
+  //  console.log({ initPos });
   newMap[initPos[0]] = replaceAt(newMap[initPos[0]], initPos[1], '.');
   newMap[place[0]] = replaceAt(newMap[place[0]], place[1], player);
   //  console.log({ players, initPos, player, place, newMap });
@@ -223,11 +235,11 @@ function search(map) {
   let i = 0;
   while (stack.length) {
     i++;
-    if (i > 10) break;
+    if (i > 588) break;
     const s = stack.pop();
-    console.log(stack.length, { s });
     //console.log(stack);
     const vis = visited[hash(s)];
+    console.log(i, stack.length, { s, vis });
     //if (vis !== undefined) console.log({ vis }, s[0]);
     if (vis !== undefined && vis <= s[0]) {
       //      console.log('hit', { s });
@@ -243,13 +255,14 @@ function search(map) {
     locked = checkWin(m);
     if (locked.length === 8) {
       console.log('!!!!!!', { cost, m });
-      //return;
+      return;
       continue;
     }
     //    console.log({ cost, m, path });
-    const players = getPlayers(map);
-    console.log(players);
-    for (let player of 'ABCDEFGH'.split('')) {
+    const players = getPlayers(m);
+    console.log({ players, locked });
+    for (let [player, _] of players) {
+      console.log({ player });
       if (locked.includes(player)) continue;
       //      console.log({ m, player });
       const moves = possibleMoves(m, player);
@@ -257,9 +270,10 @@ function search(map) {
       for (let [place, addCost] of moves) {
         const mp = playMove(m, [player, place]);
         //console.log({ mp });
-        const c = cost + addCost * getCost(player);
-        if (visited[hash([c, mp])] < c) continue;
-        stack.push([c, mp]);
+        const newCost = cost + addCost * getCost(player);
+        //if (visited[hash([c, mp])] < c) continue;
+        console.log('    push', newCost, mp);
+        stack.push([newCost, mp]);
       }
     }
   }
