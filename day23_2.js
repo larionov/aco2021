@@ -30,7 +30,7 @@ for await (let line of readLines(Deno.stdin)) {
   all.push(line);
 }
 delete all[0];
-delete all[4];
+delete all[6];
 all = all.filter(Boolean);
 
 function getCost(player) {
@@ -85,8 +85,14 @@ function possibleMoves(map, start) {
     visited[h(y, x)] = true;
     resultPaths.push(path);
     const movesAvailable = [];
-    if (y === 2) {
+    if (y === 4) {
       if (map[y - 1][x] === '.') movesAvailable.push([y - 1, x]);
+    } else if (y === 3) {
+      if (map[y - 1][x] === '.') movesAvailable.push([y - 1, x]);
+      if (map[y + 1][x] === '.') movesAvailable.push([y + 1, x]);
+    } else if (y === 2) {
+      if (map[y - 1][x] === '.') movesAvailable.push([y - 1, x]);
+      if (map[y + 1][x] === '.') movesAvailable.push([y + 1, x]);
     } else if (y === 1) {
       if (map[y - 1][x] === '.') movesAvailable.push([y - 1, x]);
       if (map[y + 1][x] === '.') movesAvailable.push([y + 1, x]);
@@ -109,8 +115,23 @@ function possibleMoves(map, start) {
     .filter(([end]) => !(end[0] === 0 && [3, 5, 7, 9].includes(end[1])));
   moves = moves.filter(([end]) => end[0] !== start[0]);
   moves = moves.filter(([end]) => {
-    if (end[0] === 2 && playerCols[c] === end[1]) return true;
-    if (end[0] === 1 && playerCols[c] === end[1] && map[2][end[1]] === c)
+    if (end[0] === 4 && playerCols[c] === end[1]) return true;
+    if (end[0] === 3 && playerCols[c] === end[1] && map[4][end[1]] === c)
+      return true;
+    if (
+      end[0] === 2 &&
+      playerCols[c] === end[1] &&
+      map[3][end[1]] === c &&
+      map[4][end[1]] === c
+    )
+      return true;
+    if (
+      end[0] === 1 &&
+      playerCols[c] === end[1] &&
+      map[2][end[1]] === c &&
+      map[3][end[1]] === c &&
+      map[4][end[1]] === c
+    )
       return true;
     if (end[0] === 0) return true;
     return false;
@@ -121,9 +142,19 @@ function possibleMoves(map, start) {
 function checkWin(map) {
   const locked = [];
   for (let i of [3, 5, 7, 9]) {
-    const c = map[2][i];
+    const c = map[4][i];
     //    console.log({ c, i }, colPlayers[i]);
-    if (c === colPlayers[i]) locked.push([c, 2, i]);
+    if (c === colPlayers[i]) locked.push([c, 4, i]);
+  }
+  for (let [c, l] of [...locked]) {
+    // l = 3
+    if (l === 4 && map[3][playerCols[c]] === c)
+      locked.push([c, 3, playerCols[c]]);
+  }
+  for (let [c, l] of [...locked]) {
+    // l = 2
+    if (l === 3 && map[2][playerCols[c]] === c)
+      locked.push([c, 2, playerCols[c]]);
   }
   for (let [c, l] of [...locked]) {
     // l = 1
@@ -174,7 +205,7 @@ function search(map) {
     locked = checkWin(m);
     //console.log({ cost, m, locked });
     //console.log({ locked, m });
-    if (locked.length === 8) {
+    if (locked.length === 16) {
       console.log('!!!!!!', { cost, m });
       return;
       continue;
@@ -214,6 +245,7 @@ console.log('----------------');
 //console.log({ m });
 // console.log(getPlayers(m));
 //console.log(possibleMoves(m, [2, 5]));
+console.log(all);
 const demo = ['#...........#', '###B#C#B#D###', '  #A#D#C#A#'];
 search(all);
 //search(m);
