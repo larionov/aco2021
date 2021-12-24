@@ -22,18 +22,6 @@ import { BinaryHeap } from 'https://deno.land/x/collections@v0.10.2/binary_heap.
 
 function ascend([a1, a2, a3, a], [b1, b2, b3, b]) {
   return a1 - b1;
-  //  console.log({ a, b });
-  // return typeof a === 'undefined'
-  //     ? typeof b === 'undefined'
-  //       ? 0
-  //       : 1
-  //     : typeof b === 'undefined'
-  //     ? -1
-  //     : a.length < b.length
-  //     ? -1
-  //     : a.length > b.length
-  //     ? 1
-  //     : a1 - b1;
 }
 
 let all = [];
@@ -53,12 +41,6 @@ all = all
   .replace('D', 'H')
   .split('\n');
 
-//all = ['#.AB........#', '###.#.#C#D###', '  #E#F#G#H#  '];
-// const init = [all[1], all[2], all[3]].map((v) =>
-//   v.replaceAll(/[^ABCD\.]/g, '').split(''),
-// );
-
-console.log(all.join('\n'));
 function getCost(player) {
   switch (player) {
     case 'A':
@@ -119,13 +101,11 @@ const playerOp = {
   G: 'C',
   H: 'D',
 };
-const movesHash = {};
+
+const movesCache = {};
 function possibleMoves(map, player) {
   const key = player + map.join('\n');
-  if (movesHash[key]) {
-    //    console.log('hit');
-    return movesHash[key];
-  }
+  if (movesCache[key]) return movesCache[key];
   const visited = {};
   const resultPaths = [];
   const helper = ([y, x], path = []) => {
@@ -144,10 +124,8 @@ function possibleMoves(map, player) {
       if (map[y][x + 1] === '.') movesAvailable.push([y, x + 1]);
     }
     for (let move of movesAvailable) {
-      //          helper()
       helper(move, [...path, move]);
     }
-    //console.log({ movesAvailable });
   };
   const players = getPlayers(map);
   const [_, pos] = players.find(([p]) => p === player);
@@ -168,18 +146,12 @@ function possibleMoves(map, player) {
     if (end[0] === 0) return true;
     return false;
   });
-  movesHash[key] = moves;
+  movesCache[key] = moves;
   return moves;
 }
+
 function checkWin(map) {
   const p = getPlayersMap(map);
-  // console.log({ map, p });
-  // console.log(Object.values(p).filter((pos) => pos[0] === 1 || pos[0] === 2));
-  // if (
-  //   Object.values(p).filter((pos) => pos[0] === 1 || pos[0] === 2).length !== 8
-  // )
-  //   return [];
-  //  console.log({ p });
   const locked = [];
   for (let c of 'ABCDEFGH') {
     if (p[c][1] === playerCols[c] && p[c][0] === 2) {
@@ -191,33 +163,18 @@ function checkWin(map) {
     const col = playerCols[c];
     if (p[playerOp[c]][1] === col) locked.push(playerOp[c]);
   }
-
-  // if (p.A[1] !== p.E[1] || p.A[1] !== 3) return false;
-  // if (p.B[1] !== p.F[1] || p.B[1] !== 5) return false;
-  // if (p.C[1] !== p.G[1] || p.C[1] !== 7) return false;
-  // if (p.D[1] !== p.H[1] || p.D[1] !== 9) return false;
   return locked;
 }
 
-// console.log(getPlayers(all));
-// console.log('F', possibleMoves(all, 'F'));
-// console.log('B', possibleMoves(all, 'B'));
-// console.log('E', possibleMoves(all, 'E'));
-// console.log(checkWin(all));
-
 const copy = (m) => JSON.parse(JSON.stringify(m));
 function playMove(map, [player, place]) {
-  //  console.log({ map });
   const newMap = copy(map);
   const players = getPlayers(map);
   const [_, initPos] = players.find((p) => p[0] === player);
-  //  console.log({ initPos });
   newMap[initPos[0]] = replaceAt(newMap[initPos[0]], initPos[1], '.');
   newMap[place[0]] = replaceAt(newMap[place[0]], place[1], player);
-  //  console.log({ players, initPos, player, place, newMap });
   return newMap;
 }
-//function playGame(map, moves) {}
 function hash([cost, map]) {
   return map
     .join('')
@@ -237,20 +194,13 @@ function search(map) {
     i++;
     if (i > 588) break;
     const s = stack.pop();
-    //console.log(stack);
     const vis = visited[hash(s)];
     console.log(i, stack.length, { s, vis });
-    //if (vis !== undefined) console.log({ vis }, s[0]);
     if (vis !== undefined && vis <= s[0]) {
-      //      console.log('hit', { s });
       continue;
     }
-    //console.log(stack.length);
     visited[hash(s)] = s[0];
     const [cost, m] = s;
-    //    console.log({ cost }, locked.length, stack.length);
-    //if (locked.length > 6) console.log({ locked });
-    //console.log(cost, m, path);
 
     locked = checkWin(m);
     if (locked.length === 8) {
@@ -258,30 +208,16 @@ function search(map) {
       return;
       continue;
     }
-    //    console.log({ cost, m, path });
     const players = getPlayers(m);
-    console.log({ players, locked });
     for (let [player, _] of players) {
-      console.log({ player });
       if (locked.includes(player)) continue;
-      //      console.log({ m, player });
       const moves = possibleMoves(m, player);
-      console.log({ player, moves });
       for (let [place, addCost] of moves) {
         const mp = playMove(m, [player, place]);
-        //console.log({ mp });
         const newCost = cost + addCost * getCost(player);
-        //if (visited[hash([c, mp])] < c) continue;
-        console.log('    push', newCost, mp);
         stack.push([newCost, mp]);
       }
     }
   }
 }
-console.log('-------------');
-//console.log(playMove(all, ['E', [0, 2], 1]));
-//search(all);
 search(all);
-//const m = ['#BE........A#', '###.#.#C#D###', '  #.#F#G#H#  '];
-//console.log(possibleMoves(m, 'H'));
-// console.log(m, checkWin(m));

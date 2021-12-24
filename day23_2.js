@@ -74,7 +74,6 @@ const movesHash = {};
 function possibleMoves(map, start) {
   const key = start.join('_') + map.join('');
   if (movesHash[key]) {
-    //console.log('hit', key, movesHash[key]);
     return movesHash[key];
   }
   const visited = {};
@@ -106,9 +105,7 @@ function possibleMoves(map, start) {
     }
   };
   helper(start);
-  //console.log({ visited });
   const c = map[start[0]][start[1]];
-  //console.log({ player, resultPaths });
   let moves = resultPaths
     .filter((p) => p.length)
     .map((p) => [p[p.length - 1], p.length])
@@ -143,7 +140,6 @@ function checkWin(map) {
   const locked = [];
   for (let i of [3, 5, 7, 9]) {
     const c = map[4][i];
-    //    console.log({ c, i }, colPlayers[i]);
     if (c === colPlayers[i]) locked.push([c, 4, i]);
   }
   for (let [c, l] of [...locked]) {
@@ -161,7 +157,6 @@ function checkWin(map) {
     if (l === 2 && map[1][playerCols[c]] === c)
       locked.push([c, 1, playerCols[c]]);
   }
-  //console.log(locked.length);
   return locked;
 }
 
@@ -169,12 +164,11 @@ const copy = (m) => JSON.parse(JSON.stringify(m));
 function playMove(map, [start, end]) {
   const newMap = copy(map);
   const c = newMap[start[0]][start[1]];
-  //  console.log({ map, c, start, end });
   newMap[start[0]] = replaceAt(newMap[start[0]], start[1], '.');
   newMap[end[0]] = replaceAt(newMap[end[0]], end[1], c);
   return newMap;
 }
-//function playGame(map, moves) {}
+
 function hash([cost, map]) {
   return map.join('');
 }
@@ -184,69 +178,36 @@ function search(map) {
 
   const visited = {};
   let locked = []; //new Set();
-  let i = 0;
   while (stack.length) {
-    i++;
-    //if (i > 588) break;
     const s = stack.pop();
-    //console.log(stack.length);
     const vis = visited[hash(s)];
-    //console.log(i, stack.length, { s, vis });
-    //if (vis !== undefined) console.log({ vis }, s[0]);
     if (vis !== undefined && vis <= s[0]) {
-      //console.log('hit', { s, vis });
       continue;
     }
     visited[hash(s)] = s[0];
     const [cost, m] = s;
-    //console.log({ cost }, locked.length, stack.length);
-    //if (locked.length > 6) console.log({ locked });
 
     locked = checkWin(m);
-    //console.log({ cost, m, locked });
-    //console.log({ locked, m });
     if (locked.length === 16) {
       console.log('!!!!!!', { cost, m });
       return;
       continue;
     }
-    //    console.log({ cost, m, path });
-    //    const players = getPlayers(map);
     const players = getPlayers(m);
-    //console.log({ players, locked });
     for (let [c, pos] of players) {
       const found = locked.find(
         ([lc, ll, lj]) => c === lc && ll == pos[0] && lj == pos[1],
       );
-      //console.log({ c, pos, found });
       if (found) continue;
-      //console.log({ pos, locked });
-      //      console.log({ m, player });
       const moves = possibleMoves(m, pos);
-      //console.log({ player: c, moves });
-      //console.log({ m, players, pos, moves });
       for (let [place, addCost] of moves) {
         const mp = playMove(m, [pos, place]);
-        //console.log({ mp, c });
         const newCost = cost + addCost * getCost(c);
-        //console.log({ newCost });
-        //if (visited[hash([newCost, mp])] < newCost) continue;
-        //console.log({ place, addCost, mp });
-        //console.log('    push', newCost, mp);
         stack.push([newCost, mp]);
       }
     }
   }
 }
 console.log('----------------');
-//const m = ['#BA........A#', '###.#.#C#D###', '  #.#B#C#D#  '];
-//const m = ['#...........#', '###A#C#B#D###', '  #A#D#C#B#  '];
-// const m = ['#DC........D#', '###B#B#.#.###', '  #A#.#C#A#'];
-//console.log({ m });
-// console.log(getPlayers(m));
-//console.log(possibleMoves(m, [2, 5]));
 console.log(all);
-const demo = ['#...........#', '###B#C#B#D###', '  #A#D#C#A#'];
 search(all);
-//search(m);
-//console.log(m, checkWin(m));
